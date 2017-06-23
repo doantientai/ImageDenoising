@@ -27,14 +27,14 @@ if not os.path.exists(path_img_noise):
     os.makedirs(path_img_noise)
 
 def add_gauss_noise_gray(image, sigma):
-    ### this function for image having value from 0..1
+    image_amax = (np.amax(image)).astype(float) # because some image 0..1, some some others 0..255
     row,col= image.shape
     mean = 0
-    sigma = sigma/255.0
+    sigma = sigma/(255.0/image_amax)
     gauss = np.random.normal(mean,sigma,(row,col))
     gauss = gauss.reshape(row,col)    
     noisy = image + gauss
-    noisy_clipped = np.clip(noisy, 0.0, 1.0)
+    noisy_clipped = np.clip(noisy, 0.0, image_amax)
     return noisy_clipped
 
 def mse2(imageA, imageB):
@@ -64,15 +64,14 @@ print('number of images:', len(list_img_org))
 count = 0
 list_img_len = len(list_img_org)
 for img_name in list_img_org:
-#     img = plt.imread(path_img_org + img_name)
     img = np.array(Image.open(path_img_org + img_name))
-    img_n = add_gauss_noise_gray(img, gau_sigma)    
-#     plt.imsave(path_img_noise+ img_name, img_n) THIS FUNCTION SUCKS!!!!!
-    saveImgWithPIL(img_n, path_img_noise + img_name)
+#     print('amax:', (np.amax(img)).astype(float))
+    
+    img_n = add_gauss_noise_gray(img, gau_sigma)
+#     print('amax img_n:', np.amax(img_n))
+#     saveImgWithPIL(img_n, path_img_noise + img_name)
     count += 1
-    if count % 100 == 0:
-        print('Adding noise: ', count, '/', list_img_len)
-# print('',end='\n')
+    if count % 10 == 0:
+        print('Adding noise: ', count, '/', list_img_len, end='\r')
+print('',end='\n')
 print('DONE!')
-
-plt.imshow(img_n, cmap='gray')
